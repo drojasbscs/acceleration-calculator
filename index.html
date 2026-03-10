@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart Motion Calculator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      padding: 24px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 1.5rem; color: #2b6cb0; margin-bottom: 4px; }
+    .subtitle { color: #718096; font-size: 0.9rem; margin-bottom: 24px; }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    h2 { font-size: 1.05rem; color: #2d3748; margin-bottom: 12px; }
+
+    .distance-row { display: flex; align-items: center; gap: 12px; }
+    .distance-row label { font-size: 0.9rem; color: #4a5568; white-space: nowrap; }
+    .distance-row input {
+      width: 120px;
+      padding: 8px 12px;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .distance-row input:focus { outline: none; border-color: #4299e1; }
+    .unit { color: #718096; font-size: 0.9rem; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    thead tr { background: #ebf8ff; }
+    th {
+      padding: 10px 12px;
+      text-align: left;
+      color: #2c5282;
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+    tr:last-child td { border-bottom: none; }
+    .test-num { color: #718096; font-size: 0.85rem; }
+
+    .time-input {
+      width: 100px;
+      padding: 6px 10px;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    .time-input:focus { outline: none; border-color: #4299e1; }
+
+    .calc-value { font-weight: 600; color: #276749; }
+    .placeholder { color: #cbd5e0; font-size: 0.85rem; }
+
+    .btn-reset {
+      margin-top: 16px;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #e2e8f0;
+      color: #4a5568;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-reset:hover { background: #cbd5e0; }
+
+    .formula-note {
+      font-size: 0.8rem;
+      color: #a0aec0;
+      margin-top: 14px;
+    }
+    .formula-note span { font-family: monospace; color: #718096; }
+  </style>
+</head>
+<body>
+
+  <h1>Cart Motion Calculator</h1>
+  <p class="subtitle">Enter the distance once, then record the time for each test run.</p>
+
+  <div class="card">
+    <h2>Distance traveled by the cart</h2>
+    <div class="distance-row">
+      <label for="distance">Distance:</label>
+      <input type="number" id="distance" placeholder="e.g. 1.50" min="0.001" step="any" oninput="recalcAll()">
+      <span class="unit">meters (m)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Test Results</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Test</th>
+          <th>Time (s)</th>
+          <th>Average Speed (m/s)</th>
+          <th>Acceleration (m/s²)</th>
+        </tr>
+      </thead>
+      <tbody id="test-body"></tbody>
+    </table>
+    <button class="btn-reset" onclick="resetAll()">↺ Reset all times</button>
+    <p class="formula-note">
+      Average speed: <span>v = d / t</span> &nbsp;|&nbsp;
+      Acceleration: <span>a = 2d / t²</span> (cart starts from rest)
+    </p>
+  </div>
+
+  <script>
+    const NUM_TESTS = 10;
+
+    function buildTable() {
+      const tbody = document.getElementById('test-body');
+      tbody.innerHTML = '';
+      for (let i = 1; i <= NUM_TESTS; i++) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="test-num">Test ${i}</td>
+          <td><input class="time-input" type="number" id="time-${i}" placeholder="0.00" min="0.001" step="any" oninput="recalcRow(${i})"></td>
+          <td id="speed-${i}"><span class="placeholder">—</span></td>
+          <td id="accel-${i}"><span class="placeholder">—</span></td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function recalcRow(i) {
+      const d = parseFloat(document.getElementById('distance').value);
+      const t = parseFloat(document.getElementById(`time-${i}`).value);
+      const speedCell = document.getElementById(`speed-${i}`);
+      const accelCell = document.getElementById(`accel-${i}`);
+
+      if (!isNaN(d) && d > 0 && !isNaN(t) && t > 0) {
+        const v = d / t;
+        const a = (2 * d) / (t * t);
+        speedCell.innerHTML = `<span class="calc-value">${v.toFixed(3)}</span>`;
+        accelCell.innerHTML = `<span class="calc-value">${a.toFixed(3)}</span>`;
+      } else {
+        speedCell.innerHTML = `<span class="placeholder">—</span>`;
+        accelCell.innerHTML = `<span class="placeholder">—</span>`;
+      }
+    }
+
+    function recalcAll() {
+      for (let i = 1; i <= NUM_TESTS; i++) recalcRow(i);
+    }
+
+    function resetAll() {
+      for (let i = 1; i <= NUM_TESTS; i++) {
+        document.getElementById(`time-${i}`).value = '';
+        document.getElementById(`speed-${i}`).innerHTML = `<span class="placeholder">—</span>`;
+        document.getElementById(`accel-${i}`).innerHTML = `<span class="placeholder">—</span>`;
+      }
+    }
+
+    buildTable();
+  </script>
+
+</body>
+</html>
