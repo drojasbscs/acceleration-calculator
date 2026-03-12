@@ -98,6 +98,15 @@
       <input type="number" id="distance" placeholder="e.g. 1.50" min="0.001" step="any" oninput="recalcAll()">
       <span class="unit">meters (m)</span>
     </div>
+    <div class="distance-row" style="margin-top:12px;">
+      <label for="mass">Cart mass:</label>
+      <input type="number" id="mass" placeholder="e.g. 250" min="0" step="any" oninput="convertMass()">
+      <select id="mass-unit" onchange="convertMass()" style="padding:7px 8px;border:1.5px solid #cbd5e0;border-radius:8px;font-size:0.95rem;">
+        <option value="g">g</option>
+        <option value="oz">oz</option>
+      </select>
+      <span id="mass-kg" class="unit"></span>
+    </div>
   </div>
 
   <div class="card">
@@ -122,6 +131,15 @@
 
   <script>
     const NUM_TESTS = 10;
+
+    function convertMass() {
+      const val = parseFloat(document.getElementById('mass').value);
+      const unit = document.getElementById('mass-unit').value;
+      const display = document.getElementById('mass-kg');
+      if (isNaN(val) || val <= 0) { display.textContent = ''; return; }
+      const kg = unit === 'g' ? val / 1000 : val * 0.0283495;
+      display.textContent = `= ${kg.toFixed(4)} kg`;
+    }
 
     function buildTable() {
       const tbody = document.getElementById('test-body');
