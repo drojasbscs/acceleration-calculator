@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cart Motion Calculator</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -123,6 +124,8 @@
       <tbody id="test-body"></tbody>
     </table>
     <button class="btn-reset" onclick="resetAll()">↺ Reset all times</button>
+    <button class="btn-reset" style="margin-left:8px;" onclick="calcAverage()">Average acceleration</button>
+    <p id="avg-result" style="margin-top:12px;font-size:0.95rem;color:#276749;font-weight:600;"></p>
     <p class="formula-note">
       Average speed: <span>v = d / t</span> &nbsp;|&nbsp;
       Acceleration: <span>a = 2d / t²</span> (cart starts from rest)
@@ -138,7 +141,27 @@
       const display = document.getElementById('mass-kg');
       if (isNaN(val) || val <= 0) { display.textContent = ''; return; }
       const kg = unit === 'g' ? val / 1000 : val * 0.0283495;
-      display.textContent = `= ${kg.toFixed(4)} kg`;
+      display.textContent = `= ${kg.toFixed(2)} kg`;
+    }
+
+    function calcAverage() {
+      const d = parseFloat(document.getElementById('distance').value);
+      const values = [];
+      for (let i = 1; i <= NUM_TESTS; i++) {
+        const t = parseFloat(document.getElementById(`time-${i}`).value);
+        if (!isNaN(d) && d > 0 && !isNaN(t) && t > 0) {
+          values.push((2 * d) / (t * t));
+        }
+      }
+      const display = document.getElementById('avg-result');
+      if (values.length === 0) {
+        display.textContent = 'No valid tests to average yet.';
+        display.style.color = '#a0aec0';
+      } else {
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        display.textContent = `Average acceleration (${values.length} test${values.length > 1 ? 's' : ''}): ${avg.toFixed(2)} m/s²`;
+        display.style.color = '#276749';
+      }
     }
 
     function buildTable() {
@@ -166,7 +189,7 @@
         const v = d / t;
         const a = (2 * d) / (t * t);
         speedCell.innerHTML = `<span class="calc-value">${v.toFixed(3)}</span>`;
-        accelCell.innerHTML = `<span class="calc-value">${a.toFixed(3)}</span>`;
+        accelCell.innerHTML = `<span class="calc-value">${a.toFixed(2)}</span>`;
       } else {
         speedCell.innerHTML = `<span class="placeholder">—</span>`;
         accelCell.innerHTML = `<span class="placeholder">—</span>`;
